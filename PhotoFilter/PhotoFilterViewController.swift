@@ -74,7 +74,18 @@ class PhotoFilterViewController: UIViewController {
 	}
 	
 	@IBAction func savePhotoButtonPressed(_ sender: UIButton) {
-		// TODO: Save to photo library
+        guard let originalImage = originalImage else { return }
+        guard let processedImage = filter(originalImage.flattened) else { return }
+        PHPhotoLibrary.requestAuthorization { status in
+            guard status == .authorized else { fatalError("User did not authorize app to save photos") }
+            PHPhotoLibrary.shared().performChanges({ PHAssetCreationRequest.creationRequestForAsset(from: processedImage) }) { completion, error in
+                if let error = error {
+                    print("Error saving photo: \(error.localizedDescription)")
+                    return
+                }
+                DispatchQueue.main.async { print("Saved Image!") }
+            }
+        }
 	}
     
     // --- --- --- --- --- --- --- --- --- --- --- --- --- --- ---
