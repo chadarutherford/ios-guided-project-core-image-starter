@@ -17,6 +17,16 @@ class PhotoFilterViewController: UIViewController {
     private var context = CIContext(options: nil)
     private var originalImage: UIImage? {
         didSet {
+            guard let originalImage = originalImage else { return }
+            var scaledSize = imageView.bounds.size
+            let scale = UIScreen.main.scale
+            scaledSize = CGSize(width: scaledSize.width * scale, height: scaledSize.height * scale)
+            scaledImage = originalImage.imageByScaling(toSize: scaledSize)
+        }
+    }
+    
+    private var scaledImage: UIImage? {
+        didSet {
             updateImage()
         }
     }
@@ -29,8 +39,8 @@ class PhotoFilterViewController: UIViewController {
 	}
     
     private func updateImage() {
-        if let originalImage = originalImage {
-            imageView.image = filter(originalImage)
+        if let scaledImage = scaledImage {
+            imageView.image = filter(scaledImage)
         } else {
             imageView.image = nil
         }
@@ -50,11 +60,17 @@ class PhotoFilterViewController: UIViewController {
         return UIImage(cgImage: outputCGImage)
     }
     
+    private func showImagePicker() {
+        let imagePicker = UIImagePickerController()
+        imagePicker.sourceType = .photoLibrary
+        imagePicker.delegate = self
+        present(imagePicker, animated: true)
+    }
+    
     // --- --- --- --- --- --- --- --- --- --- --- --- --- --- ---
 	// MARK: - Actions
 	@IBAction func choosePhotoButtonPressed(_ sender: Any) {
-		// TODO: show the photo picker so we can choose on-device photos
-		// UIImagePickerController + Delegate
+        showImagePicker()
 	}
 	
 	@IBAction func savePhotoButtonPressed(_ sender: UIButton) {
@@ -74,4 +90,16 @@ class PhotoFilterViewController: UIViewController {
 	@IBAction func saturationChanged(_ sender: UISlider) {
         updateImage()
 	}
+}
+
+extension PhotoFilterViewController: UIImagePickerControllerDelegate, UINavigationControllerDelegate {
+    func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey : Any]) {
+        guard let image = info[UIImagePickerController.InfoKey.originalImage] as? UIImage else { return }
+        originalImage = image
+        picker.dismiss(animated: true)
+    }
+    
+    func imagePickerControllerDidCancel(_ picker: UIImagePickerController) {
+        picker.dismiss(animated: true)
+    }
 }
