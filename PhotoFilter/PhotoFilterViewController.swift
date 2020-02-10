@@ -15,12 +15,26 @@ class PhotoFilterViewController: UIViewController {
     // --- --- --- --- --- --- --- --- --- --- --- --- --- --- ---
     // MARK: - Properties
     private var context = CIContext(options: nil)
+    private var originalImage: UIImage? {
+        didSet {
+            updateImage()
+        }
+    }
     
     // --- --- --- --- --- --- --- --- --- --- --- --- --- --- ---
     // MARK: - View Controller Life Cycle
 	override func viewDidLoad() {
 		super.viewDidLoad()
+        originalImage = imageView.image
 	}
+    
+    private func updateImage() {
+        if let originalImage = originalImage {
+            imageView.image = filter(originalImage)
+        } else {
+            imageView.image = nil
+        }
+    }
     
     private func filter(_ image: UIImage) -> UIImage? {
         guard let cgImage = image.cgImage else { return nil }
@@ -50,14 +64,14 @@ class PhotoFilterViewController: UIViewController {
     // --- --- --- --- --- --- --- --- --- --- --- --- --- --- ---
 	// MARK: - Slider events
 	@IBAction func brightnessChanged(_ sender: UISlider) {
-
+        updateImage()
 	}
 	
-	@IBAction func contrastChanged(_ sender: Any) {
-
+	@IBAction func contrastChanged(_ sender: UISlider) {
+        updateImage()
 	}
 	
-	@IBAction func saturationChanged(_ sender: Any) {
-
+	@IBAction func saturationChanged(_ sender: UISlider) {
+        updateImage()
 	}
 }
